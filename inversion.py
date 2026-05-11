@@ -191,6 +191,13 @@ def draw_info_panel(screen, formula_t, formula_k):
     font_log = pygame.font.SysFont("arial", 18)
     font_total = pygame.font.SysFont("arial", 40, bold=True)
     
+    center_x = GASKET_WIDTH + INFO_WIDTH // 2
+
+    def blit_centered(surface, text_surface, y):
+        rect = text_surface.get_rect(center=(center_x, y + text_surface.get_height()//2))
+        surface.blit(text_surface, rect)
+        return text_surface.get_height()
+
     y_offset = 15
     lbl = font_title.render("Формули:", True, (0, 0, 0))
     y_offset += blit_centered(screen, lbl, y_offset) + 10
@@ -204,11 +211,6 @@ def draw_info_panel(screen, formula_t, formula_k):
     screen.blit(formula_k, img_rect)
 
     y_offset += formula_k.get_height() + 30
-    
-    def blit_centered(surface, text_surface, y):
-        rect = text_surface.get_rect(center=(center_x, y + text_surface.get_height()//2))
-        surface.blit(text_surface, rect)
-        return text_surface.get_height()
     
     title = font_title.render("Інформація (Теорема Декарта)", True, (0,0,0))
     y_offset += blit_centered(screen, title, y_offset) + 15
@@ -339,7 +341,7 @@ def main():
         draw_instructions(gasket_surface)
         screen.blit(gasket_surface, (0,0))
         
-        draw_info_panel(screen)
+        draw_info_panel(screen, formula_t, formula_k)
 
         pygame.draw.rect(screen, (220,220,220), (0, HEIGHT-PANEL_HEIGHT, GASKET_WIDTH, PANEL_HEIGHT))
         for b in buttons:
