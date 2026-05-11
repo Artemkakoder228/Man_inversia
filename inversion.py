@@ -237,19 +237,13 @@ def draw_info_panel(screen, formula_t, formula_k):
     y_offset += 15
     lbl = font_title.render("Формули:", True, (0,0,0))
     y_offset += blit_centered(screen, lbl, y_offset) + 10
-    
-    f1 = font_text.render("Кривизна: k4 = k1 + k2 + k3 ± 2*sqrt(k1*k2 + k2*k3 + k1*k3)", True, (50,0,0))
-    y_offset += blit_centered(screen, f1, y_offset) + 5
-    
-    f2 = font_text.render("Радіус нового кола обчислюється як: r = 1 / |k|", True, (50,0,0))
-    y_offset += blit_centered(screen, f2, y_offset) + 20
 
     lbl_log = font_title.render("Виміри перших новоутворених 4-х кіл", True, (0,0,0))
     y_offset += blit_centered(screen, lbl_log, y_offset) + 5
     
     blocks = [log_messages[i:i+6] for i in range(0, len(log_messages), 6)]
     
-    start_y = y_offset + 40
+    start_y = y_offset + 15
     col_width = INFO_WIDTH // 2
     max_row_height = 0
     
@@ -258,7 +252,7 @@ def draw_info_panel(screen, formula_t, formula_k):
         
         col = i % 2
         if col == 0 and i > 0:
-            start_y += max_row_height + 60
+            start_y += max_row_height + 25
             max_row_height = 0
             
         box_width = col_width - 30
@@ -301,6 +295,15 @@ def main():
     pygame.init()
     formula_t = pygame.image.load("formula_t.png")
     formula_k = pygame.image.load("formula_k.png")
+
+    def scale_image(img, target_width):
+        w, h = img.get_size()
+        target_height = int(h * (target_width / w))
+        return pygame.transform.smoothscale(img, (target_width, target_height))
+    
+    formula_t = scale_image(formula_t, 450)
+    formula_k = scale_image(formula_k, 150)
+
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     clock = pygame.time.Clock()
     pygame.display.set_caption("Pygame")
