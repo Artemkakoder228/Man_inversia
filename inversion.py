@@ -8,7 +8,7 @@ WIDTH = GASKET_WIDTH + INFO_WIDTH
 TOP_MARGIN = 60 
 PANEL_HEIGHT = 50
 HEIGHT = GASKET_WIDTH + TOP_MARGIN + PANEL_HEIGHT
-epsilon = 50
+epsilon = 0.01
 
 log_messages = []
 detailed_log_count = 0
