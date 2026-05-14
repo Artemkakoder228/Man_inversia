@@ -8,7 +8,7 @@ WIDTH = GASKET_WIDTH + INFO_WIDTH
 TOP_MARGIN = 60 
 PANEL_HEIGHT = 50
 HEIGHT = GASKET_WIDTH + TOP_MARGIN + PANEL_HEIGHT
-MAX_DEPTH = 5
+MAX_DEPTH = 7
 epsilon = 0.1
 
 log_messages = []
@@ -39,14 +39,14 @@ class Circle:
 
 def isTangent(c1, c2):
     d = c1.dist(c2)
-    return abs(d - (c1.radius + c2.radius)) < epsilon or abs(d - abs(c1.radius - c2.radius)) < epsilon
+    return abs(d - (c1.radius + c2.radius)) < 2.5 or abs(d - abs(c1.radius - c2.radius)) < 2.5
 
 def validate(c4, c1, c2, c3):
     if c4.radius < 2:
         return False
     for other in allCircles:
         d = c4.dist(other)
-        if d < epsilon and abs(c4.radius - other.radius) < epsilon:
+        if d < 1.0 and abs(c4.radius - other.radius) < 1.0:
             return False
     if not isTangent(c4, c1): return False
     if not isTangent(c4, c2): return False
