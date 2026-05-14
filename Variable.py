@@ -125,16 +125,13 @@ def nextGeneration():
                 
                 spawn_inner_gasket(nc, depth + 1, nextQueue)
                 
-                if detailed_log_count < 1:
+                if detailed_log_count < 4:
                     detailed_log_count += 1
-                    colors = [(200, 0, 0), (0, 150, 0), (0, 0, 200), (200, 100, 0)]
-                    nc.color = colors[detailed_log_count - 1]
-                    log_messages.append((f"Утворене коло №{detailed_log_count}", nc.color))
-                    log_messages.append((f"Колір C1", nc.color))
-                    log_messages.append((f"Колір C2", nc.color))
-                    log_messages.append((f"Колір C3", nc.color))
-                    log_messages.append(("", nc.color))
-                #    log_messages.append((f"Коло рівня {nc.depth}: k={nc.bend:.3f}", nc.color))
+                    COLORS = [(200, 0, 0), (0, 150, 0), (0, 0, 200), (200, 100, 0)]
+                    nc.color = COLORS[detailed_log_count - 1]
+                    log_messages.append((f"Нове коло №{detailed_log_count}", nc.color))
+                else:
+                    nc.color = (0, 0, 0)
 
     queue = nextQueue
 
@@ -183,7 +180,7 @@ def reset_builder():
     log_messages = []
     detailed_log_count = 0
     state = 0
-    c1_base = Circle(-1 / (GASKET_WIDTH/2), GASKET_WIDTH/2, TOP_MARGIN + (GASKET_WIDTH)/2)
+    c1_base = Circle(-1 / (GASKET_WIDTH/2), GASKET_WIDTH/2, TOP_MARGIN + (GASKET_WIDTH)/2, color=(50, 0, 50))
     c2_base = None
     c3_base = None
     preview_circle = None
