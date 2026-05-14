@@ -90,19 +90,14 @@ def nextGeneration():
         return
     
     nextQueue = []
-
     for triplet in queue:
-        if len(triplet) == 4:
-            c1, c2, c3, depth = triplet
-        else:
-            c1, c2, c3 = triplet[0], triplet[1], triplet[2]
-            depth = 0
+        c1, c2, c3, depth = triplet
 
         if depth >= MAX_DEPTH:
             continue
 
-        k4 = descartes(c1, c2, c3)
-        newCircles = complexDescartes(c1, c2, c3, k4, depth + 1)
+        k4_values = descartes(c1, c2, c3)
+        newCircles = complexDescartes(c1, c2, c3, k4_values, depth + 1)
 
         for nc in newCircles:
             if validate(nc, c1, c2, c3):
