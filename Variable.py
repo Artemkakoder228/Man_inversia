@@ -8,7 +8,7 @@ WIDTH = GASKET_WIDTH + INFO_WIDTH
 TOP_MARGIN = 60 
 PANEL_HEIGHT = 50
 HEIGHT = GASKET_WIDTH + TOP_MARGIN + PANEL_HEIGHT
-MAX_DEPTH = 7
+MAX_DEPTH = 10
 epsilon = 0.1
 
 log_messages = []
@@ -125,17 +125,16 @@ def nextGeneration():
                 
                 spawn_inner_gasket(nc, depth + 1, nextQueue)
                 
-                if detailed_log_count < 4:
+                if detailed_log_count < 1:
                     detailed_log_count += 1
                     colors = [(200, 0, 0), (0, 150, 0), (0, 0, 200), (200, 100, 0)]
                     nc.color = colors[detailed_log_count - 1]
-                    log_messages.append((f"Інформація про утворене коло №{detailed_log_count}", nc.color))
-                    log_messages.append((f"З кіл: C1(k={c1.bend:.3f}, x={c1.center.real:.1f}, y={c1.center.imag:.1f})", nc.color))
-                    log_messages.append((f"       C2(k={c2.bend:.3f}, x={c2.center.real:.1f}, y={c2.center.imag:.1f})", nc.color))
-                    log_messages.append((f"       C3(k={c3.bend:.3f}, x={c3.center.real:.1f}, y={c3.center.imag:.1f})", nc.color))
-                    log_messages.append((f"Коло: k={nc.bend:.3f}, x={nc.center.real:.1f}, y={nc.center.imag:.1f}, r={nc.radius:.1f}", nc.color))
+                    log_messages.append((f"Утворене коло №{detailed_log_count}", nc.color))
+                    log_messages.append((f"Колір C1", nc.color))
+                    log_messages.append((f"Колір C2", nc.color))
+                    log_messages.append((f"Колір C3", nc.color))
                     log_messages.append(("", nc.color))
-                    log_messages.append((f"Коло рівня {nc.depth}: k={nc.bend:.3f}", nc.color))
+                #    log_messages.append((f"Коло рівня {nc.depth}: k={nc.bend:.3f}", nc.color))
 
     queue = nextQueue
 
