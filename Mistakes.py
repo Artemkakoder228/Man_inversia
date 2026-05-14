@@ -8,7 +8,7 @@ WIDTH = GASKET_WIDTH + INFO_WIDTH
 TOP_MARGIN = 60 
 PANEL_HEIGHT = 50
 HEIGHT = GASKET_WIDTH + TOP_MARGIN + PANEL_HEIGHT
-epsilon = 0.1
+epsilon = 0.0000000000001
 
 log_messages = []
 detailed_log_count = 0
@@ -58,7 +58,7 @@ def validate(c4, c1, c2, c3):
     if not (ok1 and ok2 and ok3):
         max_err = max(err1, err2, err3)
         if max_err < 10.0:
-            return False, f"Відхилено: похибка {max_err:.1f} >= {epsilon}"
+            return False, f"Помилка {max_err:.1f} >= {epsilon}"
         else:
             return False, "extraneous"
             
@@ -99,7 +99,7 @@ def nextGeneration():
                 log_messages.append(f"[r={nc.radius:.1f}] -> Успішно додано")
                 allCircles.append(nc)
                 nextQueue.extend([[c1, c2, nc], [c1, c3, nc], [c2, c3, nc]])
-            elif reason.startswith("Відхилено"):
+            elif reason.startswith("Помилка"):
                 log_messages.append(f"[r={nc.radius:.1f}, x={nc.center.real:.1f}, y={nc.center.imag:.1f}] -> {reason}")
             
             while len(log_messages) > 40:
