@@ -28,24 +28,17 @@ class Circle:
         self.radius = abs(1 / bend)
         self.center = complex(x, y)
         self.depth = depth
-
-        colors = [
-            (0, 0, 0),          #Чорний
-            (200, 0, 0),        #Червоний
-            (0, 150, 0),        #Зелений
-            (0, 0, 200),        #Синій
-            (200, 100, 0),       #Помаранчевий
-            (150, 0, 150)       #Фіолетовий
-        ]
-        
-        self.colors = [depth % len(colors)]
+        self.color = color
+        self.subcircles = []
 
     def dist(self, other):
         return abs(self.center - other.center)
 
     def show(self, surface):
         if self.radius > 1:
-            pygame.draw.circle(surface, self.colors[0], (int(self.center.real), int(self.center.imag)), int(self.radius), 2)
+            pygame.draw.circle(surface, self.color, (int(self.center.real), int(self.center.imag)), int(self.radius), 2)
+        for child in self.subcircles:
+            child.show(surface)
 
 def isTangent(c1, c2):
     d = c1.dist(c2)
@@ -63,11 +56,82 @@ def validate(c4, c1, c2, c3):
     if not isTangent(c4, c3): return False
     return True
 
+def validate_inside(c4, c1, c2, c3, parent, existing):
+    if c4.radius < 2:
+        return False
+    if abs(c4.center - parent.center) + c4.radius > parent.radius + epsilon:
+        return False
+    for other in existing:
+        d = c4.dist(other)
+        if d < epsilon and abs(c4.radius - other.radius) < epsilon:
+            return False
+    if not isTangent(c4, c1): return False
+    if not isTangent(c4, c2): return False
+    if not isTangent(c4, c3): return False
+    return True
+
+
+def create_inner_seed_circles(parent):
+    R = parent.radius
+    if R < 20:
+        return None
+
+    # вибираємо два внутрішніх кола різного розміру,
+    # щоб сконструювати неперервну аполлонівську внутрішню трицю
+    r2 = max(2, R * 0.36)
+    r3 = max(2, R * 0.18)
+
+    d2 = R - r2
+    d3 = R - r3
+    target = r2 + r3
+
+    cos_theta = (d2*d2 + d3*d3 - target*target) / (2 * d2 * d3)
+    cos_theta = max(-1.0, min(1.0, cos_theta))
+    theta = math.acos(cos_theta)
+
+    c2 = Circle(1 / r2, parent.center.real + d2, parent.center.imag, color=parent.color, depth=parent.depth + 1)
+    c3 = Circle(1 / r3,
+                 parent.center.real + d3 * math.cos(theta),
+                 parent.center.imag + d3 * math.sin(theta),
+                 color=parent.color, depth=parent.depth + 1)
+    return c2, c3
+
+
+def generate_nested_fractal(parent, max_depth=2):
+    seeds = create_inner_seed_circles(parent)
+    if not seeds:
+        return
+
+    c2, c3 = seeds
+    parent.subcircles = [c2, c3]
+    existing = [parent, c2, c3]
+    queue = [[parent, c2, c3, 0]]
+
+    while queue:
+        c1, c2, c3, depth = queue.pop(0)
+        if depth >= max_depth:
+            continue
+
+        k4_values = descartes(c1, c2, c3)
+        new_circles = complexDescartes(c1, c2, c3, k4_values, depth + 1)
+
+        for nc in new_circles:
+            nc.color = parent.color
+            if validate_inside(nc, c1, c2, c3, parent, existing):
+                existing.append(nc)
+                parent.subcircles.append(nc)
+                queue.append([c1, c2, nc, depth + 1])
+                queue.append([c1, c3, nc, depth + 1])
+                queue.append([c2, c3, nc, depth + 1])
+                if depth + 1 < max_depth and nc.radius > 15:
+                    generate_nested_fractal(nc, max_depth - 1)
+
+
 def descartes(c1, c2, c3):
     k1, k2, k3 = c1.bend, c2.bend, c3.bend
     s = k1 + k2 + k3
     prod = k1*k2 + k2*k3 + k1*k3
-    root = 2 * math.sqrt(abs(prod))
+    root = 2 * math.sqrt(prod)
     return [s + root, s - root]
 
 def complexDescartes(c1, c2, c3, k4, depth):
@@ -102,9 +166,11 @@ def nextGeneration():
         for nc in newCircles:
             if validate(nc, c1, c2, c3):
                 allCircles.append(nc)
-                nextQueue.extend([[c1, c2, nc], depth + 1])
-                nextQueue.extend([[c1, c3, nc], depth + 1])
-                nextQueue.extend([[c2, c3, nc], depth + 1])
+                nextQueue.append([c1, c2, nc, depth + 1])
+                nextQueue.append([c1, c3, nc, depth + 1])
+                nextQueue.append([c2, c3, nc, depth + 1])
+                if nc.radius > 20:
+                    generate_nested_fractal(nc, max_depth=2)
                 
                 if detailed_log_count < 4:
                     detailed_log_count += 1
