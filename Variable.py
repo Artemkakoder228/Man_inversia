@@ -8,7 +8,8 @@ WIDTH = GASKET_WIDTH + INFO_WIDTH
 TOP_MARGIN = 60 
 PANEL_HEIGHT = 50
 HEIGHT = GASKET_WIDTH + TOP_MARGIN + PANEL_HEIGHT
-epsilon = 50
+MAX_DEPTH = 5
+epsilon = 0.1
 
 log_messages = []
 detailed_log_count = 0
@@ -22,18 +23,29 @@ c3_base = None
 preview_circle = None
 
 class Circle:
-    def __init__(self, bend, x, y, color=(0, 0, 0)):
+    def __init__(self, bend, x, y, color=(0, 0, 0), depth = 0):
         self.bend = bend
         self.radius = abs(1 / bend)
         self.center = complex(x, y)
-        self.color = color
+        self.depth = depth
+
+        colors = [
+            (0, 0, 0),          #Чорний
+            (200, 0, 0),        #Червоний
+            (0, 150, 0),        #Зелений
+            (0, 0, 200),        #Синій
+            (200, 100, 0),       #Помаранчевий
+            (150, 0, 150)       #Фіолетовий
+        ]
+        
+        self.colors = [depth % len(colors)]
 
     def dist(self, other):
         return abs(self.center - other.center)
 
     def show(self, surface):
         if self.radius > 1:
-            pygame.draw.circle(surface, self.color, (int(self.center.real), int(self.center.imag)), int(self.radius), 2)
+            pygame.draw.circle(surface, self.colors[0], (int(self.center.real), int(self.center.imag)), int(self.radius), 2)
 
 def isTangent(c1, c2):
     d = c1.dist(c2)
@@ -58,31 +70,46 @@ def descartes(c1, c2, c3):
     root = 2 * math.sqrt(abs(prod))
     return [s + root, s - root]
 
-def complexDescartes(c1, c2, c3, k4):
+def complexDescartes(c1, c2, c3, k4, depth):
     k1, k2, k3 = c1.bend, c2.bend, c3.bend
-    z1, z2, z3 = c1.center, c2.center, c3.center
+    z1, z2, z3 = c1.center, c2.center, c3.center 
 
     sum_z = k1*z1 + k2*z2 + k3*z3
     root = cmath.sqrt(k1*k2*z1*z2 + k2*k3*z2*z3 + k1*k3*z1*z3) * 2
 
     return [
-        Circle(k4[0], (sum_z + root).real / k4[0], (sum_z + root).imag / k4[0]),
-        Circle(k4[0], (sum_z - root).real / k4[0], (sum_z - root).imag / k4[0]),
-        Circle(k4[1], (sum_z + root).real / k4[1], (sum_z + root).imag / k4[1]),
-        Circle(k4[1], (sum_z - root).real / k4[1], (sum_z - root).imag / k4[1]),
+        Circle(k4[0], (sum_z + root).real / k4[0], (sum_z + root).imag / k4[0], depth=depth),
+        Circle(k4[0], (sum_z - root).real / k4[0], (sum_z - root).imag / k4[0], depth=depth),
+        Circle(k4[1], (sum_z + root).real / k4[1], (sum_z + root).imag / k4[1], depth=depth),
+        Circle(k4[1], (sum_z - root).real / k4[1], (sum_z - root).imag / k4[1], depth=depth),
     ]
 
 def nextGeneration():
     global queue, detailed_log_count
+    if not queue:
+        return
+    
     nextQueue = []
+
     for triplet in queue:
-        c1, c2, c3 = triplet
+        if len(triplet) == 4:
+            c1, c2, c3, depth = triplet
+        else:
+            c1, c2, c3 = triplet[0], triplet[1], triplet[2]
+            depth = 0
+
+        if depth >= MAX_DEPTH:
+            continue
+
         k4 = descartes(c1, c2, c3)
-        newCircles = complexDescartes(c1, c2, c3, k4)
+        newCircles = complexDescartes(c1, c2, c3, k4, depth + 1)
+
         for nc in newCircles:
             if validate(nc, c1, c2, c3):
                 allCircles.append(nc)
-                nextQueue.extend([[c1, c2, nc], [c1, c3, nc], [c2, c3, nc]])
+                nextQueue.extend([[c1, c2, nc], depth + 1])
+                nextQueue.extend([[c1, c3, nc], depth + 1])
+                nextQueue.extend([[c2, c3, nc], depth + 1])
                 
                 if detailed_log_count < 4:
                     detailed_log_count += 1
@@ -94,7 +121,8 @@ def nextGeneration():
                     log_messages.append((f"       C3(k={c3.bend:.3f}, x={c3.center.real:.1f}, y={c3.center.imag:.1f})", nc.color))
                     log_messages.append((f"Коло: k={nc.bend:.3f}, x={nc.center.real:.1f}, y={nc.center.imag:.1f}, r={nc.radius:.1f}", nc.color))
                     log_messages.append(("", nc.color))
-                    
+                    log_messages.append((f"Коло рівня {nc.depth}: k={nc.bend:.3f}", nc.color))
+
     queue = nextQueue
 
 
@@ -379,7 +407,7 @@ def main():
                             elif state == 1:
                                 c3_base = get_c3_from_mouse(event.pos)
                                 allCircles = [c1_base, c2_base, c3_base]
-                                queue = [[c1_base, c2_base, c3_base]]
+                                queue = [[c1_base, c2_base, c3_base, 0]]
                                 state = 2
                                 preview_circle = None
 
